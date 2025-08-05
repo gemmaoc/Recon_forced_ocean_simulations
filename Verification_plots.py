@@ -93,7 +93,7 @@ for i in range(len(recons)):
     plt.plot(recon_time, recon_data[i], label=recon_stats[i], linewidth=2)
 plt.legend(loc='lower left', fontsize=12)
 plt.xlabel('Year', fontsize=14)
-plt.ylabel(vname + ' ()'+ recon_units + ')', fontsize=14)
+plt.ylabel(vname + ' ('+ recon_units + ')', fontsize=14)
 plt.title('Time Series of {} over {}'.format(vname, region), fontsize=16)
 plt.grid(True)
 
