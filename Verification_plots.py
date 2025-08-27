@@ -30,7 +30,7 @@ anom_ref = 1979,2005
 region = 'ase_domain'
 recon_start,recon_stop = 1800,2005
 recons = ['cesm2_pace']
-vname = 'pr' #u10, v10, tas, psl, pr, dlw, dsw, spfh2m
+vname = 'spfh2m' #u10, v10, tas, psl, pr, dlw, dsw, spfh2m
 
 #%% load data 
 
@@ -50,7 +50,7 @@ recon_time = recon_1d.time
 
 #%%get ERA5 
 era_vname_dict = {'u10':'u10','v10':'v10','tas':'t2m','sst':'sst','psl':'msl',
-                  'dsw':'ssrd', 'dlw':'strd', 'pr':'tp'}
+                  'dsw':'ssrd', 'dlw':'strd', 'pr':'tp', 'spfh2m':'q2m'}
 verif_dir = '../Data/Reanalysis/ERA5/'
 era_1d, era_units = load_1d_data(verif_dir+'era5_annual_1979_2024.nc', era_vname_dict[vname], \
                                 region, anom_ref = anom_ref)

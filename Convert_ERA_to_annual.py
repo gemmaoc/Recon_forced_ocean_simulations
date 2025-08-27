@@ -11,24 +11,34 @@ ds1 = xr.open_dataset(file_dir+"era5_monthly_d2m_temp_wind_psl_1979_2024.nc")
 ds2 = xr.open_dataset(file_dir+"era5_monthly_ssrd_strd_tp_1979_2024.nc")
 
 
-#%% Combine the datasets into one
+#%% Combine the datasets into one (takes several minutes)
 ds_combined = xr.merge([ds1, ds2])
 
 #%% Helper function to convert dew point (K) and pressure (Pa) to specific humidity (kg/kg)
-def dewpoint_to_specific_humidity(d2m, ps):
-    # Constants
-    Rd = 287.05  # J/(kg·K)
-    Rv = 461.5   # J/(kg·K)
-    epsilon = Rd / Rv  # ~0.622
-    # Saturation vapor pressure over liquid water (Pa)
-    es = 6.112 * np.exp((17.67 * (d2m - 273.15)) / (d2m - 29.65)) * 100  # convert hPa to Pa
-    q = epsilon * es / (ps - (1 - epsilon) * es)
+# def dewpoint_to_specific_humidity(d2m, ps):
+#     # Constants
+#     Rd = 287.05  # J/(kg·K)
+#     Rv = 461.5   # J/(kg·K)
+#     epsilon = Rd / Rv  # ~0.622
+#     # Saturation vapor pressure over liquid water (Pa)
+#     es = 6.112 * np.exp((17.67 * (d2m - 273.15)) / (d2m - 29.65)) * 100  # convert hPa to Pa
+#     q = epsilon * es / (ps - (1 - epsilon) * es)
+#     return q
+
+def specific_humidity(p_hPa, Td_C):
+    # saturation vapor pressure at dew point (hPa)
+    e = 6.112 * np.exp((17.67 * Td_C) / (Td_C + 243.5))
+    
+    # mixing ratio (kg/kg)
+    w = 0.622 * e / (p_hPa - e)
+    
+    # specific humidity (kg/kg)
+    q = w / (1 + w)
+
     return q
 
 #%% Group by year and convert to annual values
 seconds_in_year = 365 * 24 * 60 * 60  # 31,536,000
-
-# Initialize a dict to hold annual DataArrays
 annual_vars = {}
 for var in ds_combined.data_vars:
     print(var)
@@ -47,14 +57,21 @@ for var in ds_combined.data_vars:
 
 # Calculate annual mean specific humidity at 2m
 d2m = ds_combined["d2m"]  # [K]
+d2m_C = d2m - 273.15  # convert to Celsius
 ps = ds_combined["msl"]  # [Pa]
-q2m = dewpoint_to_specific_humidity(d2m, ps)
+ps_hPa = ps / 100  # convert to hPa
+q2m = specific_humidity(d2m_C, ps_hPa)
 q2m_annual = q2m.groupby("valid_time.year").mean(dim="valid_time", keep_attrs=True)
 q2m_annual.name = "q2m"
 q2m_annual.attrs["units"] = "kg kg-1"
 q2m_annual.attrs["long_name"] = "Specific humidity at 2m"
 q2m_annual.attrs["note"] = "Converted from dew point temperature (d2m) and pressure (msl)"
 annual_vars["q2m"] = q2m_annual
+
+#%% test plot
+q2m_annual.sel(year=2015).plot()
+plt.title('Annual mean specific humidity at 2m for 2015')
+plt.show()
 
 #%% Combine into a new Dataset
 ds_annual = xr.Dataset({k: v for k, v in annual_vars.items()})
