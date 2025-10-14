@@ -29,14 +29,17 @@ from Functions import load_1d_data, calc_1d_corr, calc_1d_ce
 anom_ref = 1979,2005
 region = 'ase_domain'
 recon_start,recon_stop = 1800,2005
-recons = ['cesm2_pace']
-vname = 'spfh2m' #u10, v10, tas, psl, pr, dlw, dsw, spfh2m
+recons = ['cesm2_pace', 'cesm2_lens', 'cesm1_lens']
+vname = 'dlw' #u10, v10, tas, psl, pr, dlw, dsw, spfh2m
+parent_dir = '/Users/gemma/Documents/Data/'
 
 #%% load data 
 
 # get recon data
-recon_dir = '../Data/Reconstructions/'
-recon_path_dict = {'cesm2_pace':'PAC_PACE2_super_GKO1_all_bilinPSM_1mc_1800_2005_GISBrom_mitgcm_vars_'}
+recon_dir = parent_dir + 'Proxy_reconstructions/'
+recon_path_dict = {'cesm2_pace':'CESM2_PAC_PACE_recon_1800_2005/CESM2_PAC_PACE_recon_1800_2005_',
+                   'cesm2_lens':'CESM2_LENS_recon_1800_2005/CESM2_LENS_recon_1800_2005_',
+                   'cesm1_lens':'CESM1_LENS_recon_1800_2005/CESM1_LENS_recon_1800_2005_'}
 
 time_per = recon_start,recon_stop
 recon_data = []
@@ -51,7 +54,7 @@ recon_time = recon_1d.time
 #%%get ERA5 
 era_vname_dict = {'u10':'u10','v10':'v10','tas':'t2m','sst':'sst','psl':'msl',
                   'dsw':'ssrd', 'dlw':'strd', 'pr':'tp', 'spfh2m':'q2m'}
-verif_dir = '../Data/Reanalysis/ERA5/'
+verif_dir = parent_dir + 'Reanalysis/ERA5/'
 era_1d, era_units = load_1d_data(verif_dir+'era5_annual_1979_2024.nc', era_vname_dict[vname], \
                                 region, anom_ref = anom_ref)
 print('ERA5 units:', era_units)
@@ -65,12 +68,17 @@ if vname == 'pr':
     era_units = 'kg m$^{-2}$ s$^{-1}$'
 era_time = era_1d.time
 
+if vname == 'dlw' or vname == 'dsw':
+    # for radiation, multiply by 12 because you have a double division problem in your conversion from monthly to annual (double check...)
+    era_1d = era_1d * 12
+
     
 
 #%% Calc stats with ERA5 over period of overlap
 
 recon_stats = []
 era_np = np.array(era_1d.sel(time=slice(anom_ref[0], anom_ref[1])))
+
 
 for i in range(len(recons)):
     recon_i = recon_data[i]
@@ -87,11 +95,14 @@ for i in range(len(recons)):
 
 #%% Make Figure
 
+# generate colors from blue cmap
+colors = plt.cm.Blues(np.linspace(0.35, 0.9, len(recons)))
+
 fig = plt.figure(figsize=(8,4))
 plt.plot(era_time, era_1d, label='ERA5', color='black', linewidth=2)
 for i in range(len(recons)):
-    plt.plot(recon_time, recon_data[i], label=recon_stats[i], linewidth=2)
-plt.legend(loc='lower left', fontsize=12)
+    plt.plot(recon_time, recon_data[i], label=recon_stats[i], linewidth=1.5, color=colors[i])
+plt.legend(loc='upper left', fontsize=10)
 plt.xlabel('Year', fontsize=14)
 plt.ylabel(vname + ' ('+ recon_units + ')', fontsize=14)
 plt.title('Time Series of {} over {}'.format(vname, region), fontsize=16)
