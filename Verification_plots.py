@@ -29,8 +29,8 @@ from Functions import load_1d_data, calc_1d_corr, calc_1d_ce
 anom_ref = 1979,2005
 region = 'ase_domain'
 recon_start,recon_stop = 1800,2005
-recons = ['cesm2_pace', 'cesm2_lens', 'cesm1_lens']
-vname = 'dlw' #u10, v10, tas, psl, pr, dlw, dsw, spfh2m
+recons = ['cesm2_pace', 'cesm2_lens', 'cesm1_lens', 'cesm1-lme']
+vname = 'tas' #u10, v10, tas, psl, pr, dlw, dsw, spfh2m
 parent_dir = '/Users/gemma/Documents/Data/'
 
 #%% load data 
@@ -39,7 +39,8 @@ parent_dir = '/Users/gemma/Documents/Data/'
 recon_dir = parent_dir + 'Proxy_reconstructions/'
 recon_path_dict = {'cesm2_pace':'CESM2_PAC_PACE_recon_1800_2005/CESM2_PAC_PACE_recon_1800_2005_',
                    'cesm2_lens':'CESM2_LENS_recon_1800_2005/CESM2_LENS_recon_1800_2005_',
-                   'cesm1_lens':'CESM1_LENS_recon_1800_2005/CESM1_LENS_recon_1800_2005_'}
+                   'cesm1_lens':'CESM1_LENS_recon_1800_2005/CESM1_LENS_recon_1800_2005_',
+                   'cesm1-lme':'iCESM1_LME_recon_1800_2005/iCESM1_LME_recon_1800_2005_'}
 
 time_per = recon_start,recon_stop
 recon_data = []
@@ -95,14 +96,17 @@ for i in range(len(recons)):
 
 #%% Make Figure
 
-# generate colors from blue cmap
-colors = plt.cm.Blues(np.linspace(0.35, 0.9, len(recons)))
+# generate colors from  cmap
+colors = plt.cm.viridis_r(np.linspace(0.05, 0.85, len(recons)))
 
 fig = plt.figure(figsize=(8,4))
 plt.plot(era_time, era_1d, label='ERA5', color='black', linewidth=2)
 for i in range(len(recons)):
     plt.plot(recon_time, recon_data[i], label=recon_stats[i], linewidth=1.5, color=colors[i])
-plt.legend(loc='upper left', fontsize=10)
+if vname in ['psl','u10','v10']:
+    plt.legend(loc='lower left', fontsize=7)
+else:
+    plt.legend(loc='upper left', fontsize=7)
 plt.xlabel('Year', fontsize=14)
 plt.ylabel(vname + ' ('+ recon_units + ')', fontsize=14)
 plt.title('Time Series of {} over {}'.format(vname, region), fontsize=16)
