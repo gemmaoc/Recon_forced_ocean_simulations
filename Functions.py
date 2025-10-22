@@ -17,7 +17,8 @@ from scipy import stats, signal
 
 global region_dict
 region_dict = {'ASE SB':[-72,-70,245,258],'Nino3.4':[-5,5,190,240],\
-               'South Pacific':[-80,-15,100,350],'ase_domain':[-76,-70,245,260]}
+               'South Pacific':[-80,-15,100,350],'ase_domain':[-76,-70,245,260],
+               'WAIS':[-84,-74,210,280], 'WAIS_ice_cores':[-84,-78,235,270]}
 
 
 #%% LOADING 1D TIME SERIES DATA

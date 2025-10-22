@@ -27,7 +27,9 @@ from Functions import load_1d_data, calc_1d_corr, calc_1d_ce
 
 #%% User defined params
 anom_ref = 1979,2005
-region = 'ase_domain'
+# region = 'ase_domain'
+# region = 'WAIS'
+region = 'WAIS_ice_cores'
 recon_start,recon_stop = 1800,2005
 recons = ['cesm2_pace', 'cesm2_lens', 'cesm1_lens', 'cesm1-lme']
 vname = 'tas' #u10, v10, tas, psl, pr, dlw, dsw, spfh2m
