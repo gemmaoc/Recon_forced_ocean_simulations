@@ -29,11 +29,12 @@ from Functions import load_1d_data, calc_1d_corr, calc_1d_ce
 anom_ref = 1979,2005
 # region = 'ase_domain'
 # region = 'WAIS'
-region = 'WAIS_ice_cores'
+region = 'ase_domain'
 recon_start,recon_stop = 1800,2005
 recons = ['cesm2_pace', 'cesm2_lens', 'cesm1_lens', 'cesm1-lme']
-vname = 'tas' #u10, v10, tas, psl, pr, dlw, dsw, spfh2m
+vname = 'spfh2m' #u10, v10, tas, psl, pr, dlw, dsw, spfh2m
 parent_dir = '/Users/gemma/Documents/Data/'
+
 
 #%% load data 
 
@@ -78,6 +79,7 @@ if vname == 'dlw' or vname == 'dsw':
     
 
 #%% Calc stats with ERA5 over period of overlap
+print(vname)
 
 recon_stats = []
 era_np = np.array(era_1d.sel(time=slice(anom_ref[0], anom_ref[1])))
@@ -94,6 +96,11 @@ for i in range(len(recons)):
 
     stat_str = recons[i]+' recon (r = {:.2f}, p = {:.3f}, CE =  {:.2f})'.format(corr, p_val, ce)
     recon_stats.append(stat_str)
+
+    # print std dev over overlap period
+    recon_std = np.std(recon_np)
+    era_std = np.std(era_np)
+    print('{} std dev: recon = {:.4f}, ERA5 = {:.4f}'.format(recons[i], recon_std, era_std), recon_units)
 
 
 #%% Make Figure
