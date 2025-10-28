@@ -28,11 +28,11 @@ from Functions import load_1d_data, calc_1d_corr, calc_1d_ce
 #%% User defined params
 anom_ref = 1979,2005
 # region = 'ase_domain'
-# region = 'WAIS'
-region = 'ase_domain'
+region = 'WAIS'
+# region = 'WAIS_ice_cores'
 recon_start,recon_stop = 1800,2005
-recons = ['cesm2_pace', 'cesm2_lens', 'cesm1_lens', 'cesm1-lme']
-vname = 'spfh2m' #u10, v10, tas, psl, pr, dlw, dsw, spfh2m
+recons = ['cesm2_pace', 'cesm2_lens', 'cesm1_pace','cesm1_lens', 'cesm1-lme']
+vname = 'tas' #u10, v10, tas, psl, pr, dlw, dsw, spfh2m
 parent_dir = '/Users/gemma/Documents/Data/'
 
 
@@ -43,7 +43,8 @@ recon_dir = parent_dir + 'Proxy_reconstructions/'
 recon_path_dict = {'cesm2_pace':'CESM2_PAC_PACE_recon_1800_2005/CESM2_PAC_PACE_recon_1800_2005_',
                    'cesm2_lens':'CESM2_LENS_recon_1800_2005/CESM2_LENS_recon_1800_2005_',
                    'cesm1_lens':'CESM1_LENS_recon_1800_2005/CESM1_LENS_recon_1800_2005_',
-                   'cesm1-lme':'iCESM1_LME_recon_1800_2005/iCESM1_LME_recon_1800_2005_'}
+                   'cesm1-lme':'iCESM1_LME_recon_1800_2005/iCESM1_LME_recon_1800_2005_',
+                   'cesm1_pace':'CESM1_PAC_PACE_recon_1800_2005/CESM1_PAC_PACE_recon_1800_2005_'}
 
 time_per = recon_start,recon_stop
 recon_data = []
