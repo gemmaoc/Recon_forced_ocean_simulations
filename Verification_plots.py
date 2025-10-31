@@ -3,14 +3,10 @@
 """
 Created on Tue Oct  6 20:10:02 2020
 
-Plota 3-panel figure 1:
-Timeseries of SLP and U averaged over ASE shelf break region from from 1900 to 2005
-with 2 recons and ERA5. Shifts anom ref period in recons to 1979-2005. 
-Includes corr, sig, and CE in legend. 
+Creates a figure showing timeseries of a user-defined variable averaged over a user-defined region 
+in proxy reconstructions and ERA5. Shifts anom ref period in recons to 1979-2005. 
+Includes corr and CE in legend. 
 
-Also calculates the magnitude of the 1940 event, classified in 10 different ways
-And whether the 1940 event is unique in the 20th century 
-(and whether the trend influences its uniqueness)
 
 @author: gemma
 """
@@ -64,19 +60,14 @@ era_1d, era_units = load_1d_data(verif_dir+'era5_annual_1979_2024.nc', era_vname
                                 region, anom_ref = anom_ref)
 print('ERA5 units:', era_units)
 if vname == 'pr':
-    # convert from m to kg/m2/s
-    # 1 mm/day = 1e-3 m/day = 1e-3/86400 m/s = 1.1574e-8 m/s
-    # ERA5 'tp' is in meters (total precipitation), annual mean, so convert m/year to kg/m2/s
-    # 1 m/year = 1 m / (365.25*24*3600) s = 1 / 31_557_600 m/s
     era_1d = era_1d / (365.25 * 24 * 3600)  # convert m/year to m/s
     era_1d = era_1d * 1000  # convert m/s to kg/m2/s (density of water = 1000 kg/m3)
     era_units = 'kg m$^{-2}$ s$^{-1}$'
 era_time = era_1d.time
 
 if vname == 'dlw' or vname == 'dsw':
-    # for radiation, multiply by 12 because you have a double division problem in your conversion from monthly to annual (double check...)
+    # for radiation, multiply by 12 because you have a double division problem in your conversion from monthly to annual'
     era_1d = era_1d * 12
-
     
 
 #%% Calc stats with ERA5 over period of overlap
