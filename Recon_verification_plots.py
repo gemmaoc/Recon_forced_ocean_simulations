@@ -95,6 +95,7 @@ for i in range(len(recons)):
     print('{} std dev: recon = {:.4f}, ERA5 = {:.4f}'.format(recons[i], recon_std, era_std), recon_units)
 
 
+
 #%% Make Figure
 
 # generate colors from  cmap
