@@ -19,16 +19,31 @@ import importlib
 import Functions
 importlib.reload(Functions)
 from Functions import load_1d_data, calc_1d_corr, calc_1d_ce
+import os
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+from matplotlib.patches import Rectangle
 
 
 #%% User defined params
+
+# Set climate variable
+vname = 'tas' #u10, v10, tas, psl, pr, dlw, dsw, spfh2m
+
+# Time period settings
+recon_start,recon_stop = 1800,2005
 anom_ref = 1979,2005
+
+# regions are defined in Functions.py
 # region = 'ase_domain'
 region = 'WAIS'
 # region = 'WAIS_ice_cores'
-recon_start,recon_stop = 1800,2005
-recons = ['cesm2_pace', 'cesm2_lens', 'cesm1_pace','cesm1_lens', 'cesm1-lme']
-vname = 'tas' #u10, v10, tas, psl, pr, dlw, dsw, spfh2m
+
+# which recons to plot
+# recons = ['cesm2_pace', 'cesm2_lens', 'cesm1_pace','cesm1_lens', 'cesm1-lme']
+recons = ['cesm2_pace', 'cesm2_pace_redo']
+
+# Set directory location of proxy and reanalysis data. It looks for subdirectories "Proxy_reconstructions" and "Reanalysis/ERA5"
 parent_dir = '/Users/gemma/Documents/Data/'
 
 
@@ -40,7 +55,8 @@ recon_path_dict = {'cesm2_pace':'CESM2_PAC_PACE_recon_1800_2005/CESM2_PAC_PACE_r
                    'cesm2_lens':'CESM2_LENS_recon_1800_2005/CESM2_LENS_recon_1800_2005_',
                    'cesm1_lens':'CESM1_LENS_recon_1800_2005/CESM1_LENS_recon_1800_2005_',
                    'cesm1-lme':'iCESM1_LME_recon_1800_2005/iCESM1_LME_recon_1800_2005_',
-                   'cesm1_pace':'CESM1_PAC_PACE_recon_1800_2005/CESM1_PAC_PACE_recon_1800_2005_'}
+                   'cesm1_pace':'CESM1_PAC_PACE_recon_1800_2005/CESM1_PAC_PACE_recon_1800_2005_',
+                   'cesm2_pace_redo':'CESM2_PAC_PACE_recon_1800_2005_redo/CESM2_PAC_PACE_recon_1800_2005_redo_'}
 
 time_per = recon_start,recon_stop
 recon_data = []
@@ -113,5 +129,93 @@ plt.xlabel('Year', fontsize=14)
 plt.ylabel(vname + ' ('+ recon_units + ')', fontsize=14)
 plt.title('Time Series of {} over {}'.format(vname, region), fontsize=16)
 plt.grid(True)
+
+# %% make a map showing the region -76,-70,245,260
+
+def normalize_lon_deg_e(lon_deg_e):
+    """Convert longitude in degrees East [0..360) to [-180..180) used by cartopy."""
+    if lon_deg_e >= 180:
+        return lon_deg_e - 360
+    return lon_deg_e
+
+
+def plot_antarctica_region_box(lon_e_min, lon_e_max, lat_min, lat_max,
+                              outpath='Plots/antarctica_region_box.png', show=True):
+    """
+    Plot Antarctica and draw a red box over the specified region.
+    
+    Parameters:
+    -----------
+    lon_e_min, lon_e_max : float
+        Longitude bounds in degrees East
+    lat_min, lat_max : float  
+        Latitude bounds in degrees
+    outpath : str
+        Output file path
+    show : bool
+        Whether to display the plot
+    """
+    # convert longitudes to -180..180
+    lon_min = normalize_lon_deg_e(lon_e_min)
+    lon_max = normalize_lon_deg_e(lon_e_max)
+
+    # Use a South Polar Stereographic projection
+    proj = ccrs.SouthPolarStereo()
+    fig = plt.figure(figsize=(8, 8))
+    ax = fig.add_subplot(1, 1, 1, projection=proj)
+
+    # Set extent so Antarctica is nicely framed
+    lon_pad = 20
+    lat_north = -60
+    ax.set_extent([lon_min - lon_pad, lon_max + lon_pad, lat_min - 8, lat_north], crs=ccrs.PlateCarree())
+
+    # Add land and coastline
+    ax.add_feature(cfeature.LAND.with_scale('50m'), facecolor='#f0f0f0')
+    ax.coastlines(resolution='50m')
+
+    # Add gridlines
+    gl = ax.gridlines(draw_labels=True, dms=False, x_inline=False, y_inline=False)
+    gl.top_labels = False
+    gl.right_labels = False
+
+    # Draw the red rectangle in PlateCarree coordinates
+    rect_lon = lon_min
+    rect_width = lon_max - lon_min
+    if rect_width <= 0:
+        # region crosses dateline in [-180,180] representation
+        rect_width = (lon_max + 360) - lon_min
+
+    rect = Rectangle((rect_lon, lat_min), rect_width, (lat_max - lat_min),
+                     linewidth=2, edgecolor='red', facecolor='none', transform=ccrs.PlateCarree(), zorder=5)
+    ax.add_patch(rect)
+
+    # Add a small marker at center and annotate
+    center_lon = (lon_e_min + lon_e_max) / 2.0
+    center_lat = (lat_min + lat_max) / 2.0
+    center_lon_norm = normalize_lon_deg_e(center_lon)
+    ax.plot(center_lon_norm, center_lat, marker='o', color='red', markersize=4, transform=ccrs.PlateCarree())
+    ax.text(center_lon_norm, center_lat - 1.0, f"{lon_e_min}°E–{lon_e_max}°E\n{lat_min}°–{lat_max}°", color='red',
+            horizontalalignment='center', transform=ccrs.PlateCarree(), fontsize=9)
+
+    # Title
+    ax.set_title(f'Antarctica with {region} region box', fontsize=16)
+
+    # Ensure output directory exists
+    outdir = os.path.dirname(outpath)
+    if outdir and not os.path.exists(outdir):
+        os.makedirs(outdir, exist_ok=True)
+
+    plt.tight_layout()
+    plt.savefig(outpath, dpi=200, bbox_inches='tight')
+    if show:
+        plt.show()
+    plt.close(fig)
+
+
+# Create the map
+lat1, lat2, lon1, lon2 = Functions.region_dict[region]
+plot_antarctica_region_box(lon1, lon2, lat1, lat2)
+
+
 
 # %%
