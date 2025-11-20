@@ -130,7 +130,7 @@ plt.ylabel(vname + ' ('+ recon_units + ')', fontsize=14)
 plt.title('Time Series of {} over {}'.format(vname, region), fontsize=16)
 plt.grid(True)
 
-# %% make a map showing the region -76,-70,245,260
+# %% make a map showing the region 
 
 def normalize_lon_deg_e(lon_deg_e):
     """Convert longitude in degrees East [0..360) to [-180..180) used by cartopy."""
