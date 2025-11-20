@@ -193,7 +193,6 @@ def plot_antarctica_region_box(lon_e_min, lon_e_max, lat_min, lat_max,
     center_lon = (lon_e_min + lon_e_max) / 2.0
     center_lat = (lat_min + lat_max) / 2.0
     center_lon_norm = normalize_lon_deg_e(center_lon)
-    ax.plot(center_lon_norm, center_lat, marker='o', color='red', markersize=4, transform=ccrs.PlateCarree())
     ax.text(center_lon_norm, center_lat - 1.0, f"{lon_e_min}°E–{lon_e_max}°E\n{lat_min}°–{lat_max}°", color='red',
             horizontalalignment='center', transform=ccrs.PlateCarree(), fontsize=9)
 
