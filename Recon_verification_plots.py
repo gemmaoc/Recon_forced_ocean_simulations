@@ -22,7 +22,7 @@ from Functions import load_1d_data, calc_1d_corr, calc_1d_ce
 import os
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-from matplotlib.patches import Rectangle
+import matplotlib.patches as mpatches
 
 
 #%% User defined params
@@ -41,7 +41,7 @@ region = 'WAIS'
 
 # which recons to plot
 # recons = ['cesm2_pace', 'cesm2_lens', 'cesm1_pace','cesm1_lens', 'cesm1-lme']
-recons = ['cesm2_pace', 'cesm2_pace_redo']
+recons = ['cesm2_pace', 'cesm2_pace_no_ice', 'cesm2_pace_ice_only']
 
 # Set directory location of proxy and reanalysis data. It looks for subdirectories "Proxy_reconstructions" and "Reanalysis/ERA5"
 parent_dir = '/Users/gemma/Documents/Data/'
@@ -56,7 +56,19 @@ recon_path_dict = {'cesm2_pace':'CESM2_PAC_PACE_recon_1800_2005/CESM2_PAC_PACE_r
                    'cesm1_lens':'CESM1_LENS_recon_1800_2005/CESM1_LENS_recon_1800_2005_',
                    'cesm1-lme':'iCESM1_LME_recon_1800_2005/iCESM1_LME_recon_1800_2005_',
                    'cesm1_pace':'CESM1_PAC_PACE_recon_1800_2005/CESM1_PAC_PACE_recon_1800_2005_',
-                   'cesm2_pace_redo':'CESM2_PAC_PACE_recon_1800_2005_redo/CESM2_PAC_PACE_recon_1800_2005_redo_'}
+
+                   'cesm2_pace_no_ice':'CESM2_PAC_PACE_recon_no_ice_1800_2005/CESM2_PAC_PACE_recon_no_ice_1800_2005_',
+                   'cesm2_lens_no_ice':'CESM2_LENS_recon_no_ice_1800_2005/CESM2_LENS_recon_no_ice_1800_2005_',
+                   'cesm1_lens_no_ice':'CESM1_LENS_recon_no_ice_1800_2005/CESM1_LENS_recon_no_ice_1800_2005_',
+                   'cesm1-lme_no_ice':'iCESM1_LME_recon_no_ice_1800_2005/iCESM1_LME_recon_no_ice_1800_2005_',
+                   'cesm1_pace_no_ice':'CESM1_PAC_PACE_recon_no_ice_1800_2005/CESM1_PAC_PACE_recon_no_ice_1800_2005_',
+
+                   'cesm2_pace_ice_only':'CESM2_PAC_PACE_recon_ice_only_1800_2005/CESM2_PAC_PACE_recon_ice_only_1800_2005_',
+                   'cesm2_pace_ice_only':'CESM2_PAC_PACE_recon_ice_only_1800_2005/CESM2_PAC_PACE_recon_ice_only_1800_2005_',
+                   'cesm1_lens_ice_only':'CESM1_LENS_recon_ice_only_1800_2005/CESM1_LENS_recon_ice_only_1800_2005_',
+                   'cesm1-lme_ice_only':'iCESM1_LME_recon_ice_only_1800_2005/iCESM1_LME_recon_ice_only_1800_2005_',
+                   'cesm1_pace_ice_only':'CESM1_PAC_PACE_recon_ice_only_1800_2005/CESM1_PAC_PACE_recon_ice_only_1800_2005_',
+                   }
 
 time_per = recon_start,recon_stop
 recon_data = []
@@ -139,8 +151,7 @@ def normalize_lon_deg_e(lon_deg_e):
     return lon_deg_e
 
 
-def plot_antarctica_region_box(lon_e_min, lon_e_max, lat_min, lat_max,
-                              outpath='Plots/antarctica_region_box.png', show=True):
+def plot_antarctica_region_box(lon_e_min, lon_e_max, lat_min, lat_max, show=True):
     """
     Plot Antarctica and draw a red box over the specified region.
     
@@ -150,8 +161,6 @@ def plot_antarctica_region_box(lon_e_min, lon_e_max, lat_min, lat_max,
         Longitude bounds in degrees East
     lat_min, lat_max : float  
         Latitude bounds in degrees
-    outpath : str
-        Output file path
     show : bool
         Whether to display the plot
     """
@@ -164,10 +173,10 @@ def plot_antarctica_region_box(lon_e_min, lon_e_max, lat_min, lat_max,
     fig = plt.figure(figsize=(8, 8))
     ax = fig.add_subplot(1, 1, 1, projection=proj)
 
-    # Set extent so Antarctica is nicely framed
-    lon_pad = 20
-    lat_north = -60
-    ax.set_extent([lon_min - lon_pad, lon_max + lon_pad, lat_min - 8, lat_north], crs=ccrs.PlateCarree())
+    # Set extent of Antarctica visible
+    lon_pad = 5
+    lat_north = -65
+    ax.set_extent([lon_min - lon_pad, lon_max + lon_pad*2, lat_min - 8, lat_north], crs=ccrs.PlateCarree())
 
     # Add land and coastline
     ax.add_feature(cfeature.LAND.with_scale('50m'), facecolor='#f0f0f0')
@@ -178,16 +187,23 @@ def plot_antarctica_region_box(lon_e_min, lon_e_max, lat_min, lat_max,
     gl.top_labels = False
     gl.right_labels = False
 
-    # Draw the red rectangle in PlateCarree coordinates
-    rect_lon = lon_min
-    rect_width = lon_max - lon_min
-    if rect_width <= 0:
-        # region crosses dateline in [-180,180] representation
-        rect_width = (lon_max + 360) - lon_min
-
-    rect = Rectangle((rect_lon, lat_min), rect_width, (lat_max - lat_min),
-                     linewidth=2, edgecolor='red', facecolor='none', transform=ccrs.PlateCarree(), zorder=5)
-    ax.add_patch(rect)
+    # Draw the red arc box over region
+    n_points = 100
+    lons = np.linspace(lon_min, lon_max, n_points)
+    bottom_lons = lons
+    bottom_lats = np.full_like(lons, lat_min)
+    top_lons = lons
+    top_lats = np.full_like(lons, lat_max)
+    left_lats = np.linspace(lat_min, lat_max, n_points)
+    left_lons = np.full_like(left_lats, lon_min)
+    right_lats = np.linspace(lat_min, lat_max, n_points)
+    right_lons = np.full_like(right_lats, lon_max)
+    
+    # Plot each edge
+    ax.plot(bottom_lons, bottom_lats, 'r-', linewidth=2, transform=ccrs.PlateCarree(), zorder=5)
+    ax.plot(top_lons, top_lats, 'r-', linewidth=2, transform=ccrs.PlateCarree(), zorder=5)
+    ax.plot(left_lons, left_lats, 'r-', linewidth=2, transform=ccrs.PlateCarree(), zorder=5)
+    ax.plot(right_lons, right_lats, 'r-', linewidth=2, transform=ccrs.PlateCarree(), zorder=5)
 
     # Add a small marker at center and annotate
     center_lon = (lon_e_min + lon_e_max) / 2.0
@@ -197,17 +213,10 @@ def plot_antarctica_region_box(lon_e_min, lon_e_max, lat_min, lat_max,
             horizontalalignment='center', transform=ccrs.PlateCarree(), fontsize=9)
 
     # Title
-    ax.set_title(f'Antarctica with {region} region box', fontsize=16)
-
-    # Ensure output directory exists
-    outdir = os.path.dirname(outpath)
-    if outdir and not os.path.exists(outdir):
-        os.makedirs(outdir, exist_ok=True)
+    ax.set_title(f'{region} region', fontsize=16)
 
     plt.tight_layout()
-    plt.savefig(outpath, dpi=200, bbox_inches='tight')
-    if show:
-        plt.show()
+    plt.show()
     plt.close(fig)
 
 
