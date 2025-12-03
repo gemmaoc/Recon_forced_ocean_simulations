@@ -40,8 +40,12 @@ region = 'WAIS'
 # region = 'WAIS_ice_cores'
 
 # which recons to plot
-# recons = ['cesm2_pace', 'cesm2_lens', 'cesm1_pace','cesm1_lens', 'cesm1-lme']
-recons = ['cesm2_pace', 'cesm2_pace_no_ice', 'cesm2_pace_ice_only']
+# recons = ['cesm2_pace', 'cesm2_lens', 'cesm1_pace','cesm1_lens', 'cesm1_lme']
+# recons = ['cesm2_pace', 'cesm2_pace_no_ice', 'cesm2_pace_ice_only']
+# recons = ['cesm2_lens', 'cesm2_lens_no_ice', 'cesm2_lens_ice_only']
+# recons = ['cesm1_lens', 'cesm1_lens_no_ice', 'cesm1_lens_ice_only']
+# recons = ['cesm1_pace', 'cesm1_pace_no_ice', 'cesm1_pace_ice_only']
+recons = ['cesm1_lme', 'cesm1_lme_no_ice', 'cesm1_lme_ice_only']
 
 # Set directory location of proxy and reanalysis data. It looks for subdirectories "Proxy_reconstructions" and "Reanalysis/ERA5"
 parent_dir = '/Users/gemma/Documents/Data/'
@@ -54,19 +58,19 @@ recon_dir = parent_dir + 'Proxy_reconstructions/'
 recon_path_dict = {'cesm2_pace':'CESM2_PAC_PACE_recon_1800_2005/CESM2_PAC_PACE_recon_1800_2005_',
                    'cesm2_lens':'CESM2_LENS_recon_1800_2005/CESM2_LENS_recon_1800_2005_',
                    'cesm1_lens':'CESM1_LENS_recon_1800_2005/CESM1_LENS_recon_1800_2005_',
-                   'cesm1-lme':'iCESM1_LME_recon_1800_2005/iCESM1_LME_recon_1800_2005_',
+                   'cesm1_lme':'iCESM1_LME_recon_1800_2005/iCESM1_LME_recon_1800_2005_',
                    'cesm1_pace':'CESM1_PAC_PACE_recon_1800_2005/CESM1_PAC_PACE_recon_1800_2005_',
 
                    'cesm2_pace_no_ice':'CESM2_PAC_PACE_recon_no_ice_1800_2005/CESM2_PAC_PACE_recon_no_ice_1800_2005_',
                    'cesm2_lens_no_ice':'CESM2_LENS_recon_no_ice_1800_2005/CESM2_LENS_recon_no_ice_1800_2005_',
                    'cesm1_lens_no_ice':'CESM1_LENS_recon_no_ice_1800_2005/CESM1_LENS_recon_no_ice_1800_2005_',
-                   'cesm1-lme_no_ice':'iCESM1_LME_recon_no_ice_1800_2005/iCESM1_LME_recon_no_ice_1800_2005_',
+                   'cesm1_lme_no_ice':'iCESM1_LME_recon_no_ice_1800_2005/iCESM1_LME_recon_no_ice_1800_2005_',
                    'cesm1_pace_no_ice':'CESM1_PAC_PACE_recon_no_ice_1800_2005/CESM1_PAC_PACE_recon_no_ice_1800_2005_',
 
                    'cesm2_pace_ice_only':'CESM2_PAC_PACE_recon_ice_only_1800_2005/CESM2_PAC_PACE_recon_ice_only_1800_2005_',
-                   'cesm2_pace_ice_only':'CESM2_PAC_PACE_recon_ice_only_1800_2005/CESM2_PAC_PACE_recon_ice_only_1800_2005_',
+                   'cesm2_lens_ice_only':'CESM2_LENS_recon_ice_only_1800_2005/CESM2_LENS_recon_ice_only_1800_2005_',
                    'cesm1_lens_ice_only':'CESM1_LENS_recon_ice_only_1800_2005/CESM1_LENS_recon_ice_only_1800_2005_',
-                   'cesm1-lme_ice_only':'iCESM1_LME_recon_ice_only_1800_2005/iCESM1_LME_recon_ice_only_1800_2005_',
+                   'cesm1_lme_ice_only':'iCESM1_LME_recon_ice_only_1800_2005/iCESM1_LME_recon_ice_only_1800_2005_',
                    'cesm1_pace_ice_only':'CESM1_PAC_PACE_recon_ice_only_1800_2005/CESM1_PAC_PACE_recon_ice_only_1800_2005_',
                    }
 
@@ -124,15 +128,18 @@ for i in range(len(recons)):
 
 
 
-#%% Make Figure
+#%% Make Figure of time series
 
 # generate colors from  cmap
-colors = plt.cm.viridis_r(np.linspace(0.05, 0.85, len(recons)))
+colors = plt.cm.viridis_r(np.linspace(0.1, 0.85, len(recons)))
+if len(recons) <= 3:
+    colors = plt.cm.plasma_r(np.linspace(0.25, 0.9, len(recons)))
+
 
 fig = plt.figure(figsize=(8,4))
-plt.plot(era_time, era_1d, label='ERA5', color='black', linewidth=2)
+plt.plot(era_time, era_1d, label='ERA5', color='black', linewidth=1.5)
 for i in range(len(recons)):
-    plt.plot(recon_time, recon_data[i], label=recon_stats[i], linewidth=1.5, color=colors[i])
+    plt.plot(recon_time, recon_data[i], label=recon_stats[i], linewidth=1.2, color=colors[i])
 if vname in ['psl','u10','v10']:
     plt.legend(loc='lower left', fontsize=7)
 else:
@@ -141,6 +148,8 @@ plt.xlabel('Year', fontsize=14)
 plt.ylabel(vname + ' ('+ recon_units + ')', fontsize=14)
 plt.title('Time Series of {} over {}'.format(vname, region), fontsize=16)
 plt.grid(True)
+
+
 
 # %% make a map showing the region 
 
